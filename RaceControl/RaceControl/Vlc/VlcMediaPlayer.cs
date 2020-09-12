@@ -122,18 +122,6 @@ namespace RaceControl.Vlc
             }
         }
 
-        public void StopPlayback()
-        {
-            AudioTracks.Clear();
-            MediaPlayer.Stop();
-
-            if (MediaPlayer.Media != null)
-            {
-                MediaPlayer.Media.Dispose();
-                MediaPlayer.Media = null;
-            }
-        }
-
         public void TogglePause()
         {
             if (MediaPlayer.CanPause)
@@ -172,7 +160,15 @@ namespace RaceControl.Vlc
 
         public async Task ChangeRendererAsync(IMediaRenderer mediaRenderer, string streamUrl)
         {
-            StopPlayback();
+            AudioTracks.Clear();
+            MediaPlayer.Stop();
+
+            if (MediaPlayer.Media != null)
+            {
+                MediaPlayer.Media.Dispose();
+                MediaPlayer.Media = null;
+            }
+
             await StartPlaybackAsync(streamUrl ?? _streamUrl, mediaRenderer);
         }
 

@@ -19,4 +19,8 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Mpv\mpv-1.dll" />
+  </ItemGroup>
+
 </Project>

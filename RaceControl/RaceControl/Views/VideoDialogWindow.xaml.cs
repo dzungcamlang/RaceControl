@@ -1,5 +1,6 @@
 ﻿using Prism.Services.Dialogs;
 using RaceControl.Core.Mvvm;
+using System;
 
 namespace RaceControl.Views
 {
@@ -13,7 +14,7 @@ namespace RaceControl.Views
             Closed += VideoDialogWindow_Closed;
         }
 
-        private void VideoDialogWindow_Closed(object sender, System.EventArgs e)
+        private void VideoDialogWindow_Closed(object sender, EventArgs e)
         {
             if (DataContext is IVideoDialogViewModel vm)
             {
