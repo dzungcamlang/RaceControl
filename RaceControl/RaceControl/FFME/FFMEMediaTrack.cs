@@ -17,7 +17,7 @@ namespace RaceControl.FFME
 
         private static string GetName(StreamInfo streamInfo)
         {
-            if (streamInfo.Metadata != null && streamInfo.Metadata.TryGetValue("comment", out var comment))
+            if (streamInfo.Metadata != null && streamInfo.Metadata.TryGetValue("comment", out var comment) && !string.IsNullOrWhiteSpace(comment))
             {
                 return comment;
             }

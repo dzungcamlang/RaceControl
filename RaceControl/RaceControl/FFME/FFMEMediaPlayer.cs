@@ -179,6 +179,12 @@ namespace RaceControl.FFME
 
         private void mediaElement_MediaOpening(object sender, MediaOpeningEventArgs e)
         {
+            var bestVideoStream = e.Info.Streams.Select(p => p.Value).Where(s => s.CodecType == AVMediaType.AVMEDIA_TYPE_VIDEO).OrderByDescending(s => s.PixelHeight).FirstOrDefault();
+
+            if (bestVideoStream != null)
+            {
+                e.Options.VideoStream = bestVideoStream;
+            }
         }
 
         private void mediaElement_MediaOpened(object sender, MediaOpenedEventArgs e)
@@ -191,8 +197,7 @@ namespace RaceControl.FFME
         {
             if (_selectedAudioTrack != null)
             {
-                var stream = e.Info.Streams[_selectedAudioTrack.Id];
-                e.Options.AudioStream = stream;
+                e.Options.AudioStream = e.Info.Streams[_selectedAudioTrack.Id];
             }
         }
 
