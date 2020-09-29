@@ -60,6 +60,7 @@
     <Resource Include="splashscreen.png" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="FFmpeg.AutoGen" Version="4.3.0.3" />
     <PackageReference Include="LibVLCSharp" Version="3.4.8" />
     <PackageReference Include="LibVLCSharp.WPF" Version="3.4.8" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.19" />
@@ -74,5 +75,10 @@
     <ProjectReference Include="..\RaceControl.Streamlink\RaceControl.Streamlink.csproj" />
     <ProjectReference Include="..\Services\RaceControl.Services.Interfaces\RaceControl.Services.Interfaces.csproj" />
     <ProjectReference Include="..\Services\RaceControl.Services\RaceControl.Services.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="ffme.win">
+      <HintPath>..\..\libraries\ffme.win.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

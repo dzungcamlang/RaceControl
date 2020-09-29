@@ -122,7 +122,7 @@ namespace RaceControl.Vlc
             }
         }
 
-        public void StopPlayback()
+        public async Task StopPlaybackAsync()
         {
             MediaPlayer.Stop();
 
@@ -148,7 +148,7 @@ namespace RaceControl.Vlc
             MediaPlayer.ToggleMute();
         }
 
-        public void SetAudioTrack(IMediaTrack audioTrack)
+        public async Task SetAudioTrackAsync(IMediaTrack audioTrack)
         {
             MediaPlayer.SetAudioTrack(audioTrack.Id);
         }
@@ -173,7 +173,7 @@ namespace RaceControl.Vlc
 
         public async Task ChangeRendererAsync(IMediaRenderer mediaRenderer, string streamUrl)
         {
-            StopPlayback();
+            await StopPlaybackAsync();
             await StartPlaybackAsync(streamUrl ?? _streamUrl, mediaRenderer);
         }
 

@@ -9,6 +9,7 @@ using RaceControl.Core.Mvvm;
 using RaceControl.Core.Settings;
 using RaceControl.Core.Streamlink;
 using RaceControl.Events;
+using RaceControl.FFME;
 using RaceControl.Services.Interfaces.F1TV;
 using System;
 using System.Diagnostics;
@@ -17,6 +18,7 @@ using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using MediaElement = Unosquare.FFME.MediaElement;
 
 namespace RaceControl.ViewModels
 {
@@ -30,6 +32,7 @@ namespace RaceControl.ViewModels
         private readonly ISettings _settings;
         private readonly object _showControlsTimerLock = new object();
 
+        private ICommand _mediaElementLoadedCommand;
         private ICommand _mouseDownVideoCommand;
         private ICommand _mouseMoveVideoCommand;
         private ICommand _mouseEnterVideoCommand;
@@ -52,6 +55,7 @@ namespace RaceControl.ViewModels
         private ICommand _startCastVideoCommand;
         private ICommand _stopCastVideoCommand;
 
+        private IMediaPlayer _mediaPlayer;
         private Process _streamlinkProcess;
         private Process _streamlinkRecordingProcess;
         private string _token;
@@ -73,19 +77,18 @@ namespace RaceControl.ViewModels
             IEventAggregator eventAggregator,
             IApiService apiService,
             IStreamlinkLauncher streamlinkLauncher,
-            ISettings settings,
-            IMediaPlayer mediaPlayer)
+            ISettings settings)
             : base(logger)
         {
             _eventAggregator = eventAggregator;
             _apiService = apiService;
             _streamlinkLauncher = streamlinkLauncher;
             _settings = settings;
-            MediaPlayer = mediaPlayer;
         }
 
         public override string Title => PlayableContent?.Title;
 
+        public ICommand MediaElementLoadedCommand => _mediaElementLoadedCommand ??= new DelegateCommand<RoutedEventArgs>(MediaElementLoadedExecute);
         public ICommand MouseDownVideoCommand => _mouseDownVideoCommand ??= new DelegateCommand<MouseButtonEventArgs>(MouseDownVideoExecute);
         public ICommand MouseMoveVideoCommand => _mouseMoveVideoCommand ??= new DelegateCommand(MouseEnterOrLeaveOrMoveVideoExecute);
         public ICommand MouseEnterVideoCommand => _mouseEnterVideoCommand ??= new DelegateCommand(MouseEnterOrLeaveOrMoveVideoExecute);
@@ -110,7 +113,11 @@ namespace RaceControl.ViewModels
 
         public Guid UniqueIdentifier { get; } = Guid.NewGuid();
 
-        public IMediaPlayer MediaPlayer { get; }
+        public IMediaPlayer MediaPlayer
+        {
+            get => _mediaPlayer;
+            set => SetProperty(ref _mediaPlayer, value);
+        }
 
         public IPlayableContent PlayableContent
         {
@@ -184,7 +191,7 @@ namespace RaceControl.ViewModels
                 StartupLocation = WindowStartupLocation.CenterScreen;
             }
 
-            StartStreamAsync().Await(SubscribeEvents, HandleCriticalError);
+            SubscribeEvents();
             LoadDriverImageUrlsAsync().Await(HandleNonCriticalError);
             CreateShowControlsTimer();
 
@@ -193,7 +200,6 @@ namespace RaceControl.ViewModels
 
         public override void OnDialogClosed()
         {
-            MediaPlayer.StopPlayback();
             MediaPlayer.Dispose();
             RemoveShowControlsTimer();
             UnsubscribeEvents();
@@ -230,6 +236,15 @@ namespace RaceControl.ViewModels
             });
         }
 
+        private void MediaElementLoadedExecute(RoutedEventArgs args)
+        {
+            if (args.Source is MediaElement mediaElement)
+            {
+                MediaPlayer = new FFMEMediaPlayer(mediaElement);
+                StartStreamAsync().Await(HandleCriticalError);
+            }
+        }
+
         private void MouseDownVideoExecute(MouseButtonEventArgs args)
         {
             if (args.ChangedButton != MouseButton.Left)
@@ -242,7 +257,7 @@ namespace RaceControl.ViewModels
                 case 1:
                     if (args.Source is DependencyObject dependencyObject)
                     {
-                        Window.GetWindow(dependencyObject)?.Owner?.DragMove();
+                        Window.GetWindow(dependencyObject)?.DragMove();
                     }
 
                     break;
@@ -435,13 +450,13 @@ namespace RaceControl.ViewModels
             if (args.AddedItems.Count > 0 && args.AddedItems[0] is IMediaTrack audioTrack)
             {
                 Logger.Info($"Changing audio track to '{audioTrack.Name}'...");
-                MediaPlayer.SetAudioTrack(audioTrack);
+                MediaPlayer.SetAudioTrackAsync(audioTrack).Await(HandleNonCriticalError);
             }
         }
 
         private bool CanScanChromecastExecute()
         {
-            return CanClose && !MediaPlayer.IsScanning;
+            return CanClose && MediaPlayer != null && !MediaPlayer.IsScanning;
         }
 
         private void ScanChromecastExecute()
@@ -463,7 +478,7 @@ namespace RaceControl.ViewModels
 
         private bool CanStopCastVideoExecute()
         {
-            return MediaPlayer.IsCasting;
+            return MediaPlayer != null && MediaPlayer.IsCasting;
         }
 
         private void StopCastVideoExecute()

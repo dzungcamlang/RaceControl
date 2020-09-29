@@ -26,13 +26,13 @@ namespace RaceControl.Common.Interfaces
 
         Task StartPlaybackAsync(string streamUrl, IMediaRenderer mediaRenderer = null);
 
-        void StopPlayback();
+        Task StopPlaybackAsync();
 
         void TogglePause();
 
         void ToggleMute();
 
-        void SetAudioTrack(IMediaTrack audioTrack);
+        Task SetAudioTrackAsync(IMediaTrack audioTrack);
 
         Task ScanChromecastAsync();
 

@@ -46,6 +46,7 @@ namespace RaceControl
         {
             var splashScreen = new SplashScreen("splashscreen.png");
             splashScreen.Show(false);
+            Unosquare.FFME.Library.FFmpegDirectory = @"D:\ffmpeg\bin";
             LibVLCSharpCore.Initialize();
             InitializeLogging();
             base.Initialize();

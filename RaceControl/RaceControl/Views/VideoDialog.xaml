@@ -4,10 +4,10 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:core="clr-namespace:RaceControl.Core.Converters;assembly=RaceControl.Core"
     xmlns:enums="clr-namespace:RaceControl.Common.Enums;assembly=RaceControl.Common"
+    xmlns:ffme="clr-namespace:Unosquare.FFME;assembly=ffme.win"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:prism="http://prismlibrary.com/"
     xmlns:s="clr-namespace:System;assembly=mscorlib"
-    xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF"
     prism:ViewModelLocator.AutoWireViewModel="True">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
@@ -67,434 +67,439 @@
             <Setter Property="ShowInTaskbar" Value="True" />
         </Style>
     </prism:Dialog.WindowStyle>
-    <vlc:VideoView Background="Black" MediaPlayer="{Binding MediaPlayer.MediaPlayer}">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-            <Label
-                Grid.Row="0"
-                Grid.RowSpan="2"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Content="Casting..."
-                FontSize="22"
-                Foreground="White"
-                Visibility="{Binding MediaPlayer.IsCasting, Converter={StaticResource BooleanToVisibilityConverter}}" />
-            <!--  Non-transparent background is required to capture mouse events  -->
-            <Grid Grid.Row="0" Background="#01000000">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Label
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Content="Casting..."
+            FontSize="22"
+            Foreground="White"
+            Visibility="{Binding MediaPlayer.IsCasting, Converter={StaticResource BooleanToVisibilityConverter}}" />
+        <!--  Non-transparent background is required to capture mouse events  -->
+        <Grid Grid.Row="0" Background="#01000000">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="MouseDown">
+                    <i:InvokeCommandAction Command="{Binding MouseDownVideoCommand}" PassEventArgsToCommand="True" />
+                </i:EventTrigger>
+                <i:EventTrigger EventName="MouseMove">
+                    <i:InvokeCommandAction Command="{Binding MouseMoveVideoCommand}" />
+                </i:EventTrigger>
+                <i:EventTrigger EventName="MouseEnter">
+                    <i:InvokeCommandAction Command="{Binding MouseEnterVideoCommand}" />
+                </i:EventTrigger>
+                <i:EventTrigger EventName="MouseLeave">
+                    <i:InvokeCommandAction Command="{Binding MouseLeaveVideoCommand}" />
+                </i:EventTrigger>
+                <i:EventTrigger EventName="MouseWheel">
+                    <i:InvokeCommandAction Command="{Binding MouseWheelVideoCommand}" PassEventArgsToCommand="True" />
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+            <ffme:MediaElement Background="Black">
                 <i:Interaction.Triggers>
-                    <i:EventTrigger EventName="MouseDown">
-                        <i:InvokeCommandAction Command="{Binding MouseDownVideoCommand}" PassEventArgsToCommand="True" />
-                    </i:EventTrigger>
-                    <i:EventTrigger EventName="MouseMove">
-                        <i:InvokeCommandAction Command="{Binding MouseMoveVideoCommand}" />
-                    </i:EventTrigger>
-                    <i:EventTrigger EventName="MouseEnter">
-                        <i:InvokeCommandAction Command="{Binding MouseEnterVideoCommand}" />
-                    </i:EventTrigger>
-                    <i:EventTrigger EventName="MouseLeave">
-                        <i:InvokeCommandAction Command="{Binding MouseLeaveVideoCommand}" />
-                    </i:EventTrigger>
-                    <i:EventTrigger EventName="MouseWheel">
-                        <i:InvokeCommandAction Command="{Binding MouseWheelVideoCommand}" PassEventArgsToCommand="True" />
+                    <i:EventTrigger EventName="Loaded">
+                        <i:InvokeCommandAction Command="{Binding MediaElementLoadedCommand}" PassEventArgsToCommand="True" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
-                <Label
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Top"
-                    Content="{Binding Title}"
-                    FontSize="22"
-                    Foreground="White"
-                    Visibility="{Binding ShowControls, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                <Image
-                    Width="275"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Bottom"
-                    RenderOptions.BitmapScalingMode="HighQuality"
-                    Source="{Binding CarImageUrl, TargetNullValue={x:Null}}"
-                    Visibility="{Binding ShowControls, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                <Image
-                    Width="175"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Bottom"
-                    RenderOptions.BitmapScalingMode="HighQuality"
-                    Source="{Binding HeadshotImageUrl, TargetNullValue={x:Null}}"
-                    Visibility="{Binding ShowControls, Converter={StaticResource BooleanToVisibilityConverter}}" />
-            </Grid>
-            <Border
-                Grid.Row="1"
-                Height="Auto"
-                BorderBrush="#ABADB3"
-                BorderThickness="1"
-                Visibility="{Binding ShowControls, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <Grid Background="White">
-                    <i:Interaction.Triggers>
-                        <i:EventTrigger EventName="MouseMove">
-                            <i:InvokeCommandAction Command="{Binding MouseMoveControlBarCommand}" />
-                        </i:EventTrigger>
-                        <i:EventTrigger EventName="MouseEnter">
-                            <i:InvokeCommandAction Command="{Binding MouseEnterControlBarCommand}" />
-                        </i:EventTrigger>
-                        <i:EventTrigger EventName="MouseLeave">
-                            <i:InvokeCommandAction Command="{Binding MouseLeaveControlBarCommand}" />
-                        </i:EventTrigger>
-                        <i:EventTrigger EventName="MouseWheel">
-                            <i:InvokeCommandAction Command="{Binding MouseWheelControlBarCommand}" PassEventArgsToCommand="True" />
-                        </i:EventTrigger>
-                    </i:Interaction.Triggers>
+            </ffme:MediaElement>
+            <Label
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                Content="{Binding Title}"
+                FontSize="22"
+                Foreground="White"
+                Visibility="{Binding ShowControls, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            <Image
+                Width="275"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Bottom"
+                RenderOptions.BitmapScalingMode="HighQuality"
+                Source="{Binding CarImageUrl, TargetNullValue={x:Null}}"
+                Visibility="{Binding ShowControls, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            <Image
+                Width="175"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                RenderOptions.BitmapScalingMode="HighQuality"
+                Source="{Binding HeadshotImageUrl, TargetNullValue={x:Null}}"
+                Visibility="{Binding ShowControls, Converter={StaticResource BooleanToVisibilityConverter}}" />
+        </Grid>
+        <Border
+            Grid.Row="1"
+            Height="Auto"
+            BorderBrush="#ABADB3"
+            BorderThickness="1"
+            Visibility="{Binding ShowControls, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid Background="White">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="MouseMove">
+                        <i:InvokeCommandAction Command="{Binding MouseMoveControlBarCommand}" />
+                    </i:EventTrigger>
+                    <i:EventTrigger EventName="MouseEnter">
+                        <i:InvokeCommandAction Command="{Binding MouseEnterControlBarCommand}" />
+                    </i:EventTrigger>
+                    <i:EventTrigger EventName="MouseLeave">
+                        <i:InvokeCommandAction Command="{Binding MouseLeaveControlBarCommand}" />
+                    </i:EventTrigger>
+                    <i:EventTrigger EventName="MouseWheel">
+                        <i:InvokeCommandAction Command="{Binding MouseWheelControlBarCommand}" PassEventArgsToCommand="True" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" Margin="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        Grid.Column="0"
+                        Margin="5,2"
+                        VerticalAlignment="Center"
+                        Text="{Binding MediaPlayer.Time, StringFormat=hh\\:mm\\:ss, Converter={StaticResource MillisecondsToTimeSpanConverter}}" />
+                    <Slider
+                        Grid.Column="1"
+                        Margin="2"
+                        IsEnabled="{Binding PlayableContent.IsLive, Converter={StaticResource InverseBooleanConverter}}"
+                        IsMoveToPointEnabled="True"
+                        IsSnapToTickEnabled="False"
+                        Maximum="{Binding MediaPlayer.Duration}"
+                        TickPlacement="BottomRight"
+                        Value="{Binding MediaPlayer.Time}">
+                        <Slider.TickFrequency>
+                            <Binding Converter="{StaticResource DivideDoubleConverter}" Path="MediaPlayer.Duration">
+                                <Binding.ConverterParameter>
+                                    <s:Double>60</s:Double>
+                                </Binding.ConverterParameter>
+                            </Binding>
+                        </Slider.TickFrequency>
+                    </Slider>
+                    <TextBlock
+                        Grid.Column="2"
+                        Margin="5,2"
+                        VerticalAlignment="Center"
+                        Text="Volume" />
+                    <Slider
+                        Grid.Column="3"
+                        Width="100"
+                        Margin="2"
+                        VerticalAlignment="Center"
+                        IsMoveToPointEnabled="True"
+                        IsSnapToTickEnabled="False"
+                        Maximum="100"
+                        TickFrequency="10"
+                        TickPlacement="BottomRight"
+                        Value="{Binding MediaPlayer.Volume}" />
+                    <TextBlock
+                        Grid.Column="4"
+                        Width="30"
+                        Margin="5,2"
+                        VerticalAlignment="Center"
+                        Text="{Binding MediaPlayer.Volume, StringFormat={}{0}%}" />
+                </Grid>
+                <Grid Grid.Row="1" Margin="2">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <Grid Grid.Row="0" Margin="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel
+                        Grid.Row="0"
+                        Grid.Column="0"
+                        Orientation="Horizontal">
+                        <Button Command="{Binding TogglePauseCommand}" ToolTip="Toggle pause">
+                            <Button.Resources>
+                                <Image x:Key="PlayImage" Source="{StaticResource PlayBitmapImage}" />
+                                <Image x:Key="PauseImage" Source="{StaticResource PauseBitmapImage}" />
+                            </Button.Resources>
+                            <Button.Style>
+                                <Style BasedOn="{StaticResource ControlBarButtonStyle}" TargetType="Button">
+                                    <Setter Property="Content" Value="{StaticResource PauseImage}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding MediaPlayer.IsPaused}" Value="True">
+                                            <Setter Property="Content" Value="{StaticResource PlayImage}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <Button Command="{Binding ToggleMuteCommand}" ToolTip="Toggle mute">
+                            <Button.Resources>
+                                <Image x:Key="AudioImage" Source="{StaticResource AudioBitmapImage}" />
+                                <Image x:Key="NoAudioImage" Source="{StaticResource NoAudioBitmapImage}" />
+                            </Button.Resources>
+                            <Button.Style>
+                                <Style BasedOn="{StaticResource ControlBarButtonStyle}" TargetType="Button">
+                                    <Setter Property="Content" Value="{StaticResource AudioImage}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding MediaPlayer.IsMuted}" Value="True">
+                                            <Setter Property="Content" Value="{StaticResource NoAudioImage}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <Button
+                            Command="{Binding FastForwardCommand}"
+                            CommandParameter="-60"
+                            Style="{StaticResource ControlBarButtonStyle}"
+                            ToolTip="Rewind one minute">
+                            <Button.Content>
+                                <Image Source="{StaticResource Rewind60BitmapImage}" />
+                            </Button.Content>
+                        </Button>
+                        <Button
+                            Command="{Binding FastForwardCommand}"
+                            CommandParameter="-10"
+                            Style="{StaticResource ControlBarButtonStyle}"
+                            ToolTip="Rewind ten seconds">
+                            <Button.Content>
+                                <Image Source="{StaticResource Rewind10BitmapImage}" />
+                            </Button.Content>
+                        </Button>
+                        <Button
+                            Command="{Binding FastForwardCommand}"
+                            CommandParameter="10"
+                            Style="{StaticResource ControlBarButtonStyle}"
+                            ToolTip="Fast forward ten seconds">
+                            <Button.Content>
+                                <Image Source="{StaticResource FastForward10BitmapImage}" />
+                            </Button.Content>
+                        </Button>
+                        <Button
+                            Command="{Binding FastForwardCommand}"
+                            CommandParameter="60"
+                            Style="{StaticResource ControlBarButtonStyle}"
+                            ToolTip="Fast forward one minute">
+                            <Button.Content>
+                                <Image Source="{StaticResource FastForward60BitmapImage}" />
+                            </Button.Content>
+                        </Button>
+                        <Button
+                            Command="{Binding SyncSessionCommand}"
+                            Style="{StaticResource ControlBarButtonStyle}"
+                            ToolTip="Synchronize playback across players *experimental*">
+                            <Button.Content>
+                                <Image Source="{StaticResource SynchronizeBitmapImage}" />
+                            </Button.Content>
+                        </Button>
+                        <Button Command="{Binding ToggleRecordingCommand}" ToolTip="Start/stop recording">
+                            <Button.Resources>
+                                <Image x:Key="RecordImage" Source="{StaticResource RecordBitmapImage}" />
+                                <Image x:Key="StopImage" Source="{StaticResource StopBitmapImage}" />
+                            </Button.Resources>
+                            <Button.Style>
+                                <Style BasedOn="{StaticResource ControlBarButtonStyle}" TargetType="Button">
+                                    <Setter Property="Content" Value="{StaticResource RecordImage}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsRecording}" Value="True">
+                                            <Setter Property="Content" Value="{StaticResource StopImage}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </StackPanel>
+                    <Grid Grid.Row="1" Grid.Column="0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <TextBlock
                             Grid.Column="0"
                             Margin="5,2"
                             VerticalAlignment="Center"
-                            Text="{Binding MediaPlayer.Time, StringFormat=hh\\:mm\\:ss, Converter={StaticResource MillisecondsToTimeSpanConverter}}" />
-                        <Slider
+                            Text="Audio track:" />
+                        <ComboBox
                             Grid.Column="1"
                             Margin="2"
-                            IsEnabled="{Binding PlayableContent.IsLive, Converter={StaticResource InverseBooleanConverter}}"
-                            IsMoveToPointEnabled="True"
-                            IsSnapToTickEnabled="False"
-                            Maximum="{Binding MediaPlayer.Duration}"
-                            TickPlacement="BottomRight"
-                            Value="{Binding MediaPlayer.Time}">
-                            <Slider.TickFrequency>
-                                <Binding Converter="{StaticResource DivideDoubleConverter}" Path="MediaPlayer.Duration">
-                                    <Binding.ConverterParameter>
-                                        <s:Double>60</s:Double>
-                                    </Binding.ConverterParameter>
-                                </Binding>
-                            </Slider.TickFrequency>
-                        </Slider>
-                        <TextBlock
-                            Grid.Column="2"
-                            Margin="5,2"
-                            VerticalAlignment="Center"
-                            Text="Volume" />
-                        <Slider
-                            Grid.Column="3"
-                            Width="100"
-                            Margin="2"
-                            VerticalAlignment="Center"
-                            IsMoveToPointEnabled="True"
-                            IsSnapToTickEnabled="False"
-                            Maximum="100"
-                            TickFrequency="10"
-                            TickPlacement="BottomRight"
-                            Value="{Binding MediaPlayer.Volume}" />
-                        <TextBlock
-                            Grid.Column="4"
-                            Width="30"
-                            Margin="5,2"
-                            VerticalAlignment="Center"
-                            Text="{Binding MediaPlayer.Volume, StringFormat={}{0}%}" />
+                            DisplayMemberPath="Name"
+                            ItemsSource="{Binding MediaPlayer.AudioTracks}">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="SelectionChanged">
+                                    <i:InvokeCommandAction Command="{Binding AudioTrackSelectionChangedCommand}" PassEventArgsToCommand="True" />
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </ComboBox>
                     </Grid>
-                    <Grid Grid.Row="1" Margin="2">
+                    <Grid
+                        Grid.Row="0"
+                        Grid.RowSpan="2"
+                        Grid.Column="1"
+                        HorizontalAlignment="Center">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <StackPanel
-                            Grid.Row="0"
-                            Grid.Column="0"
-                            Orientation="Horizontal">
-                            <Button Command="{Binding TogglePauseCommand}" ToolTip="Toggle pause">
-                                <Button.Resources>
-                                    <Image x:Key="PlayImage" Source="{StaticResource PlayBitmapImage}" />
-                                    <Image x:Key="PauseImage" Source="{StaticResource PauseBitmapImage}" />
-                                </Button.Resources>
-                                <Button.Style>
-                                    <Style BasedOn="{StaticResource ControlBarButtonStyle}" TargetType="Button">
-                                        <Setter Property="Content" Value="{StaticResource PauseImage}" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding MediaPlayer.IsPaused}" Value="True">
-                                                <Setter Property="Content" Value="{StaticResource PlayImage}" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Button.Style>
-                            </Button>
-                            <Button Command="{Binding ToggleMuteCommand}" ToolTip="Toggle mute">
-                                <Button.Resources>
-                                    <Image x:Key="AudioImage" Source="{StaticResource AudioBitmapImage}" />
-                                    <Image x:Key="NoAudioImage" Source="{StaticResource NoAudioBitmapImage}" />
-                                </Button.Resources>
-                                <Button.Style>
-                                    <Style BasedOn="{StaticResource ControlBarButtonStyle}" TargetType="Button">
-                                        <Setter Property="Content" Value="{StaticResource AudioImage}" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding MediaPlayer.IsMuted}" Value="True">
-                                                <Setter Property="Content" Value="{StaticResource NoAudioImage}" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Button.Style>
-                            </Button>
-                            <Button
-                                Command="{Binding FastForwardCommand}"
-                                CommandParameter="-60"
-                                Style="{StaticResource ControlBarButtonStyle}"
-                                ToolTip="Rewind one minute">
-                                <Button.Content>
-                                    <Image Source="{StaticResource Rewind60BitmapImage}" />
-                                </Button.Content>
-                            </Button>
-                            <Button
-                                Command="{Binding FastForwardCommand}"
-                                CommandParameter="-10"
-                                Style="{StaticResource ControlBarButtonStyle}"
-                                ToolTip="Rewind ten seconds">
-                                <Button.Content>
-                                    <Image Source="{StaticResource Rewind10BitmapImage}" />
-                                </Button.Content>
-                            </Button>
-                            <Button
-                                Command="{Binding FastForwardCommand}"
-                                CommandParameter="10"
-                                Style="{StaticResource ControlBarButtonStyle}"
-                                ToolTip="Fast forward ten seconds">
-                                <Button.Content>
-                                    <Image Source="{StaticResource FastForward10BitmapImage}" />
-                                </Button.Content>
-                            </Button>
-                            <Button
-                                Command="{Binding FastForwardCommand}"
-                                CommandParameter="60"
-                                Style="{StaticResource ControlBarButtonStyle}"
-                                ToolTip="Fast forward one minute">
-                                <Button.Content>
-                                    <Image Source="{StaticResource FastForward60BitmapImage}" />
-                                </Button.Content>
-                            </Button>
-                            <Button
-                                Command="{Binding SyncSessionCommand}"
-                                Style="{StaticResource ControlBarButtonStyle}"
-                                ToolTip="Synchronize playback across players *experimental*">
-                                <Button.Content>
-                                    <Image Source="{StaticResource SynchronizeBitmapImage}" />
-                                </Button.Content>
-                            </Button>
-                            <Button Command="{Binding ToggleRecordingCommand}" ToolTip="Start/stop recording">
-                                <Button.Resources>
-                                    <Image x:Key="RecordImage" Source="{StaticResource RecordBitmapImage}" />
-                                    <Image x:Key="StopImage" Source="{StaticResource StopBitmapImage}" />
-                                </Button.Resources>
-                                <Button.Style>
-                                    <Style BasedOn="{StaticResource ControlBarButtonStyle}" TargetType="Button">
-                                        <Setter Property="Content" Value="{StaticResource RecordImage}" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsRecording}" Value="True">
-                                                <Setter Property="Content" Value="{StaticResource StopImage}" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Button.Style>
-                            </Button>
-                        </StackPanel>
-                        <Grid Grid.Row="1" Grid.Column="0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock
-                                Grid.Column="0"
-                                Margin="5,2"
-                                VerticalAlignment="Center"
-                                Text="Audio track:" />
-                            <ComboBox
-                                Grid.Column="1"
-                                Margin="2"
-                                DisplayMemberPath="Name"
-                                ItemsSource="{Binding MediaPlayer.AudioTracks}">
-                                <i:Interaction.Triggers>
-                                    <i:EventTrigger EventName="SelectionChanged">
-                                        <i:InvokeCommandAction Command="{Binding AudioTrackSelectionChangedCommand}" PassEventArgsToCommand="True" />
-                                    </i:EventTrigger>
-                                </i:Interaction.Triggers>
-                            </ComboBox>
-                        </Grid>
-                        <Grid
+                        <Button
                             Grid.Row="0"
                             Grid.RowSpan="2"
+                            Grid.Column="0"
+                            Command="{Binding ToggleFullScreenCommand}"
+                            ToolTip="Toggle fullscreen mode">
+                            <Button.Resources>
+                                <Image x:Key="FullscreenImage" Source="{StaticResource FullscreenBitmapImage}" />
+                                <Image x:Key="WindowedImage" Source="{StaticResource WindowedBitmapImage}" />
+                            </Button.Resources>
+                            <Button.Style>
+                                <Style BasedOn="{StaticResource ControlBarButtonStyleLarge}" TargetType="Button">
+                                    <Setter Property="Content" Value="{StaticResource FullscreenImage}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding DialogSettings.WindowState, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static WindowState.Maximized}}" Value="True">
+                                            <Setter Property="Content" Value="{StaticResource WindowedImage}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <Button
+                            Grid.Row="0"
                             Grid.Column="1"
-                            HorizontalAlignment="Center">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <Button
-                                Grid.Row="0"
-                                Grid.RowSpan="2"
-                                Grid.Column="0"
-                                Command="{Binding ToggleFullScreenCommand}"
-                                ToolTip="Toggle fullscreen mode">
-                                <Button.Resources>
-                                    <Image x:Key="FullscreenImage" Source="{StaticResource FullscreenBitmapImage}" />
-                                    <Image x:Key="WindowedImage" Source="{StaticResource WindowedBitmapImage}" />
-                                </Button.Resources>
-                                <Button.Style>
-                                    <Style BasedOn="{StaticResource ControlBarButtonStyleLarge}" TargetType="Button">
-                                        <Setter Property="Content" Value="{StaticResource FullscreenImage}" />
+                            MinWidth="25"
+                            Command="{Binding MoveToCornerCommand}"
+                            CommandParameter="{x:Static enums:WindowLocation.TopLeft}"
+                            Style="{StaticResource ControlBarButtonStyle}"
+                            ToolTip="Move window to top left corner of current screen">
+                            <Button.Content>
+                                <Image Source="{StaticResource LeftUpBitmapImage}" />
+                            </Button.Content>
+                        </Button>
+                        <Button
+                            Grid.Row="0"
+                            Grid.Column="2"
+                            MinWidth="25"
+                            Command="{Binding MoveToCornerCommand}"
+                            CommandParameter="{x:Static enums:WindowLocation.TopRight}"
+                            Style="{StaticResource ControlBarButtonStyle}"
+                            ToolTip="Move window to top right corner of current screen">
+                            <Button.Content>
+                                <Image Source="{StaticResource RightUpBitmapImage}" />
+                            </Button.Content>
+                        </Button>
+                        <Button
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            MinWidth="25"
+                            Command="{Binding MoveToCornerCommand}"
+                            CommandParameter="{x:Static enums:WindowLocation.BottomLeft}"
+                            Style="{StaticResource ControlBarButtonStyle}"
+                            ToolTip="Move window to bottom left corner of current screen">
+                            <Button.Content>
+                                <Image Source="{StaticResource LeftDownBitmapImage}" />
+                            </Button.Content>
+                        </Button>
+                        <Button
+                            Grid.Row="1"
+                            Grid.Column="2"
+                            MinWidth="25"
+                            Command="{Binding MoveToCornerCommand}"
+                            CommandParameter="{x:Static enums:WindowLocation.BottomRight}"
+                            Style="{StaticResource ControlBarButtonStyle}"
+                            ToolTip="Move window to bottom right corner of current screen">
+                            <Button.Content>
+                                <Image Source="{StaticResource RightDownBitmapImage}" />
+                            </Button.Content>
+                        </Button>
+                        <Button
+                            Grid.Row="0"
+                            Grid.RowSpan="2"
+                            Grid.Column="3"
+                            Command="{Binding CloseWindowCommand}"
+                            Style="{StaticResource ControlBarButtonStyleLarge}"
+                            ToolTip="Close window">
+                            <Button.Content>
+                                <Image Source="{StaticResource ShutdownBitmapImage}" />
+                            </Button.Content>
+                        </Button>
+                    </Grid>
+                    <Grid Grid.Row="0" Grid.Column="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <CheckBox
+                            Grid.Column="0"
+                            Margin="1,0"
+                            VerticalAlignment="Center"
+                            Content="Resizable window"
+                            IsChecked="{Binding DialogSettings.ResizeMode, Converter={StaticResource ResizeModeToBooleanConverter}}"
+                            IsEnabled="{Binding DialogSettings.WindowState, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static WindowState.Normal}}" />
+                        <CheckBox
+                            Grid.Column="1"
+                            Margin="4,0"
+                            VerticalAlignment="Center"
+                            Content="Always on top"
+                            IsChecked="{Binding DialogSettings.Topmost}" />
+                    </Grid>
+                    <StackPanel
+                        Grid.Row="1"
+                        Grid.Column="2"
+                        Orientation="Horizontal">
+                        <Button
+                            Command="{Binding ScanChromecastCommand}"
+                            Content="Scan"
+                            Style="{StaticResource ControlBarButtonStyleWide}"
+                            ToolTip="Scan for Chromecast devices in local network" />
+                        <Grid>
+                            <ComboBox
+                                Width="180"
+                                Margin="2"
+                                DisplayMemberPath="Name"
+                                IsEnabled="{Binding HasItems, RelativeSource={RelativeSource Self}}"
+                                ItemsSource="{Binding MediaPlayer.MediaRenderers}"
+                                SelectedItem="{Binding SelectedMediaRenderer}" />
+                            <TextBlock
+                                Width="180"
+                                Margin="2"
+                                Padding="6,0,0,2"
+                                VerticalAlignment="Center"
+                                IsHitTestVisible="False"
+                                Text="Select Chromecast device...">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Hidden" />
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding DialogSettings.WindowState, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static WindowState.Maximized}}" Value="True">
-                                                <Setter Property="Content" Value="{StaticResource WindowedImage}" />
+                                            <DataTrigger Binding="{Binding SelectedMediaRenderer}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Visible" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
-                                </Button.Style>
-                            </Button>
-                            <Button
-                                Grid.Row="0"
-                                Grid.Column="1"
-                                MinWidth="25"
-                                Command="{Binding MoveToCornerCommand}"
-                                CommandParameter="{x:Static enums:WindowLocation.TopLeft}"
-                                Style="{StaticResource ControlBarButtonStyle}"
-                                ToolTip="Move window to top left corner of current screen">
-                                <Button.Content>
-                                    <Image Source="{StaticResource LeftUpBitmapImage}" />
-                                </Button.Content>
-                            </Button>
-                            <Button
-                                Grid.Row="0"
-                                Grid.Column="2"
-                                MinWidth="25"
-                                Command="{Binding MoveToCornerCommand}"
-                                CommandParameter="{x:Static enums:WindowLocation.TopRight}"
-                                Style="{StaticResource ControlBarButtonStyle}"
-                                ToolTip="Move window to top right corner of current screen">
-                                <Button.Content>
-                                    <Image Source="{StaticResource RightUpBitmapImage}" />
-                                </Button.Content>
-                            </Button>
-                            <Button
-                                Grid.Row="1"
-                                Grid.Column="1"
-                                MinWidth="25"
-                                Command="{Binding MoveToCornerCommand}"
-                                CommandParameter="{x:Static enums:WindowLocation.BottomLeft}"
-                                Style="{StaticResource ControlBarButtonStyle}"
-                                ToolTip="Move window to bottom left corner of current screen">
-                                <Button.Content>
-                                    <Image Source="{StaticResource LeftDownBitmapImage}" />
-                                </Button.Content>
-                            </Button>
-                            <Button
-                                Grid.Row="1"
-                                Grid.Column="2"
-                                MinWidth="25"
-                                Command="{Binding MoveToCornerCommand}"
-                                CommandParameter="{x:Static enums:WindowLocation.BottomRight}"
-                                Style="{StaticResource ControlBarButtonStyle}"
-                                ToolTip="Move window to bottom right corner of current screen">
-                                <Button.Content>
-                                    <Image Source="{StaticResource RightDownBitmapImage}" />
-                                </Button.Content>
-                            </Button>
-                            <Button
-                                Grid.Row="0"
-                                Grid.RowSpan="2"
-                                Grid.Column="3"
-                                Command="{Binding CloseWindowCommand}"
-                                Style="{StaticResource ControlBarButtonStyleLarge}"
-                                ToolTip="Close window">
-                                <Button.Content>
-                                    <Image Source="{StaticResource ShutdownBitmapImage}" />
-                                </Button.Content>
-                            </Button>
+                                </TextBlock.Style>
+                            </TextBlock>
                         </Grid>
-                        <Grid Grid.Row="0" Grid.Column="2">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <CheckBox
-                                Grid.Column="0"
-                                Margin="1,0"
-                                VerticalAlignment="Center"
-                                Content="Resizable window"
-                                IsChecked="{Binding DialogSettings.ResizeMode, Converter={StaticResource ResizeModeToBooleanConverter}}"
-                                IsEnabled="{Binding DialogSettings.WindowState, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter={x:Static WindowState.Normal}}" />
-                            <CheckBox
-                                Grid.Column="1"
-                                Margin="4,0"
-                                VerticalAlignment="Center"
-                                Content="Always on top"
-                                IsChecked="{Binding DialogSettings.Topmost}" />
-                        </Grid>
-                        <StackPanel
-                            Grid.Row="1"
-                            Grid.Column="2"
-                            Orientation="Horizontal">
-                            <Button
-                                Command="{Binding ScanChromecastCommand}"
-                                Content="Scan"
-                                Style="{StaticResource ControlBarButtonStyleWide}"
-                                ToolTip="Scan for Chromecast devices in local network" />
-                            <Grid>
-                                <ComboBox
-                                    Width="180"
-                                    Margin="2"
-                                    DisplayMemberPath="Name"
-                                    IsEnabled="{Binding HasItems, RelativeSource={RelativeSource Self}}"
-                                    ItemsSource="{Binding MediaPlayer.MediaRenderers}"
-                                    SelectedItem="{Binding SelectedMediaRenderer}" />
-                                <TextBlock
-                                    Width="180"
-                                    Margin="2"
-                                    Padding="6,0,0,2"
-                                    VerticalAlignment="Center"
-                                    IsHitTestVisible="False"
-                                    Text="Select Chromecast device...">
-                                    <TextBlock.Style>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="Visibility" Value="Hidden" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding SelectedMediaRenderer}" Value="{x:Null}">
-                                                    <Setter Property="Visibility" Value="Visible" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </TextBlock.Style>
-                                </TextBlock>
-                            </Grid>
-                            <Button
-                                Command="{Binding StartCastVideoCommand}"
-                                Content="Cast"
-                                Style="{StaticResource ControlBarButtonStyleWide}"
-                                ToolTip="Cast stream to selected Chromecast device" />
-                            <Button
-                                Command="{Binding StopCastVideoCommand}"
-                                Content="Stop"
-                                Style="{StaticResource ControlBarButtonStyleWide}"
-                                ToolTip="Stop casting and resume stream in window" />
-                        </StackPanel>
-                    </Grid>
+                        <Button
+                            Command="{Binding StartCastVideoCommand}"
+                            Content="Cast"
+                            Style="{StaticResource ControlBarButtonStyleWide}"
+                            ToolTip="Cast stream to selected Chromecast device" />
+                        <Button
+                            Command="{Binding StopCastVideoCommand}"
+                            Content="Stop"
+                            Style="{StaticResource ControlBarButtonStyleWide}"
+                            ToolTip="Stop casting and resume stream in window" />
+                    </StackPanel>
                 </Grid>
-            </Border>
-        </Grid>
-    </vlc:VideoView>
+            </Grid>
+        </Border>
+    </Grid>
 </UserControl>
