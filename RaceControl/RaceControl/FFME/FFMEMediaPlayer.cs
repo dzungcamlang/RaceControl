@@ -1,4 +1,5 @@
 ﻿using FFmpeg.AutoGen;
+using NLog;
 using Prism.Mvvm;
 using RaceControl.Common.Interfaces;
 using System;
@@ -12,6 +13,7 @@ namespace RaceControl.FFME
 {
     public class FFMEMediaPlayer : BindableBase, IMediaPlayer
     {
+        private readonly ILogger _logger;
         private readonly MediaElement _mediaElement;
 
         private long _time;
@@ -26,16 +28,18 @@ namespace RaceControl.FFME
         private ObservableCollection<IMediaRenderer> _mediaRenderers;
         private bool _disposed;
 
-        public FFMEMediaPlayer(MediaElement mediaElement)
+        public FFMEMediaPlayer(ILogger logger, MediaElement mediaElement)
         {
+            _logger = logger;
             _mediaElement = mediaElement;
-            _mediaElement.MediaInitializing += mediaElement_MediaInitializing;
-            _mediaElement.MediaOpening += mediaElement_MediaOpening;
-            _mediaElement.MediaOpened += mediaElement_MediaOpened;
-            _mediaElement.MediaChanging += mediaElement_MediaChanging;
-            _mediaElement.MediaChanged += mediaElement_MediaChanged;
-            _mediaElement.PositionChanged += mediaElement_PositionChanged;
-            _mediaElement.MediaStateChanged += mediaElement_MediaStateChanged;
+            _mediaElement.MediaInitializing += MediaElement_MediaInitializing;
+            _mediaElement.MediaOpening += MediaElement_MediaOpening;
+            _mediaElement.MediaOpened += MediaElement_MediaOpened;
+            _mediaElement.MediaChanging += MediaElement_MediaChanging;
+            _mediaElement.MediaChanged += MediaElement_MediaChanged;
+            _mediaElement.PositionChanged += MediaElement_PositionChanged;
+            _mediaElement.MediaStateChanged += MediaElement_MediaStateChanged;
+            _mediaElement.MessageLogged += MediaElement_MessageLogged;
         }
 
         public long Time
@@ -46,7 +50,6 @@ namespace RaceControl.FFME
                 if (SetProperty(ref _time, Math.Max(value, 0)))
                 {
                     _mediaElement.Position = TimeSpan.FromMilliseconds(_time);
-                    //_mediaElement.Seek(TimeSpan.FromMilliseconds(_time)).GetAwaiter().GetResult();
                 }
             }
         }
@@ -173,27 +176,55 @@ namespace RaceControl.FFME
             _disposed = true;
         }
 
-        private void mediaElement_MediaInitializing(object sender, MediaInitializingEventArgs e)
+        private void MediaElement_MediaInitializing(object sender, MediaInitializingEventArgs e)
         {
         }
 
-        private void mediaElement_MediaOpening(object sender, MediaOpeningEventArgs e)
+        private void MediaElement_MediaOpening(object sender, MediaOpeningEventArgs e)
         {
-            var bestVideoStream = e.Info.Streams.Select(p => p.Value).Where(s => s.CodecType == AVMediaType.AVMEDIA_TYPE_VIDEO).OrderByDescending(s => s.PixelHeight).FirstOrDefault();
+            var bestVideoStream = e.Info.Streams
+                .Select(p => p.Value)
+                .Where(s => s.CodecType == AVMediaType.AVMEDIA_TYPE_VIDEO)
+                .OrderByDescending(s => s.PixelHeight)
+                .ThenByDescending(s => s.PixelWidth)
+                .ThenByDescending(s => s.FPS)
+                .FirstOrDefault();
 
-            if (bestVideoStream != null)
+            e.Options.VideoStream = bestVideoStream ?? e.Options.VideoStream;
+
+            var videoStream = e.Options.VideoStream;
+            var deviceCandidates = new[]
             {
-                e.Options.VideoStream = bestVideoStream;
+                //AVHWDeviceType.AV_HWDEVICE_TYPE_CUDA,
+                AVHWDeviceType.AV_HWDEVICE_TYPE_D3D11VA,
+                AVHWDeviceType.AV_HWDEVICE_TYPE_DXVA2
+            };
+
+            if (videoStream.FPS <= 30)
+            {
+                foreach (var deviceType in deviceCandidates)
+                {
+                    var accelerator = videoStream.HardwareDevices.FirstOrDefault(d => d.DeviceType == deviceType);
+                    
+                    if (accelerator == null)
+                    {
+                        continue;
+                    }
+
+                    e.Options.VideoHardwareDevice = accelerator;
+
+                    break;
+                }
             }
         }
 
-        private void mediaElement_MediaOpened(object sender, MediaOpenedEventArgs e)
+        private void MediaElement_MediaOpened(object sender, MediaOpenedEventArgs e)
         {
             Duration = Convert.ToInt64(e.Info.Duration.TotalMilliseconds);
             AudioTracks.AddRange(e.Info.Streams.Select(p => p.Value).Where(s => s.CodecType == AVMediaType.AVMEDIA_TYPE_AUDIO).Select(s => new FFMEMediaTrack(s)));
         }
 
-        private void mediaElement_MediaChanging(object sender, MediaOpeningEventArgs e)
+        private void MediaElement_MediaChanging(object sender, MediaOpeningEventArgs e)
         {
             if (_selectedAudioTrack != null)
             {
@@ -201,16 +232,16 @@ namespace RaceControl.FFME
             }
         }
 
-        private void mediaElement_MediaChanged(object sender, MediaOpenedEventArgs e)
+        private void MediaElement_MediaChanged(object sender, MediaOpenedEventArgs e)
         {
         }
 
-        private void mediaElement_PositionChanged(object sender, PositionChangedEventArgs e)
+        private void MediaElement_PositionChanged(object sender, PositionChangedEventArgs e)
         {
             SetProperty(ref _time, Convert.ToInt64(e.Position.TotalMilliseconds), nameof(Time));
         }
 
-        private void mediaElement_MediaStateChanged(object sender, MediaStateChangedEventArgs e)
+        private void MediaElement_MediaStateChanged(object sender, MediaStateChangedEventArgs e)
         {
             switch (e.MediaState)
             {
@@ -220,6 +251,34 @@ namespace RaceControl.FFME
 
                 case MediaPlaybackState.Pause:
                     IsPaused = true;
+                    break;
+            }
+        }
+
+        private void MediaElement_MessageLogged(object sender, MediaLogMessageEventArgs e)
+        {
+            var message = $"[FFME] [{e.AspectName}] {e.Message}";
+
+            switch (e.MessageType)
+            {
+                case MediaLogMessageType.Info:
+                    _logger.Info(message);
+                    break;
+
+                case MediaLogMessageType.Debug:
+                    _logger.Debug(message);
+                    break;
+
+                case MediaLogMessageType.Trace:
+                    _logger.Trace(message);
+                    break;
+
+                case MediaLogMessageType.Error:
+                    _logger.Error(message);
+                    break;
+
+                case MediaLogMessageType.Warning:
+                    _logger.Warn(message);
                     break;
             }
         }

@@ -240,7 +240,7 @@ namespace RaceControl.ViewModels
         {
             if (args.Source is MediaElement mediaElement)
             {
-                MediaPlayer = new FFMEMediaPlayer(mediaElement);
+                MediaPlayer = new FFMEMediaPlayer(Logger, mediaElement);
                 StartStreamAsync().Await(HandleCriticalError);
             }
         }
